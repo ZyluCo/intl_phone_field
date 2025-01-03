@@ -314,7 +314,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
   @override
   void initState() {
     super.initState();
-    controller = widget.controller ?? TextEditingController();
+    controller = TextEditingController();
     _countryList = widget.countries ?? countries;
     filteredCountries = _countryList;
     number = widget.initialValue ?? '';
@@ -355,7 +355,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         });
       }
     }
-    controller.text = number;
+    controller.text = widget.controller?.text ?? number;
   }
 
   Future<void> _changeCountry() async {
