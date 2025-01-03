@@ -393,8 +393,10 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
   ///
   /// Returns `true` if the `onChanged` callback was called, otherwise `false`.
   bool _onPaste(String pastedText) {
-    bool onChangedCalled = false;
     final result = PhoneNumber.splitPhoneNumber(pastedText, countries);
+    final resultCountryCode = result['countryCode'];
+    final resultNumber = result['number'];
+    if (resultCountryCode == null || resultNumber == null) return false;
     List<Country> matchedCountries = countries
         .where(
           (country) => '+${country.dialCode}' == result['countryCode'],
@@ -405,35 +407,33 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       _selectedCountry = matchedCountries.first;
       widget.onCountryChanged?.call(_selectedCountry);
     }
-    if (result['number'] != null) {
-      // update controller
-      controller.text = result['number']!;
-      // update cursor position
-      controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.text.length),
-      );
-    }
-    if (widget.controller != null && result['number'] != null) {
-      widget.controller!.text = result['number']!;
+    // update controller
+    controller.text = resultNumber;
+    // update cursor position
+    controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: controller.text.length),
+    );
+
+    if (widget.controller != null) {
+      widget.controller!.text = resultNumber;
       // update cursor position
       widget.controller!.selection = TextSelection.fromPosition(
         TextPosition(offset: widget.controller!.text.length),
       );
     }
-    if (result['number'] != null) {
-      number = result['number']!;
-      final phoneNumber = PhoneNumber(
-        countryISOCode: _selectedCountry.code,
-        countryCode: result['countryCode']!,
-        number: result['number']!,
-      );
-      widget.onChanged?.call(phoneNumber);
-      onChangedCalled = true;
-    }
+
+    number = resultNumber;
+    final phoneNumber = PhoneNumber(
+      countryISOCode: _selectedCountry.code,
+      countryCode: '+${_selectedCountry.fullCountryCode}',
+      number: resultNumber,
+    );
+    widget.onChanged?.call(phoneNumber);
+
     if (mounted) {
       setState(() {});
     }
-    return onChangedCalled;
+    return true;
   }
 
   @override

@@ -101,7 +101,7 @@ class PhoneNumber {
         };
       }
     }
-    return {'countryCode': '', 'number': phoneNumber};
+    return {};
   }
 
   @override
