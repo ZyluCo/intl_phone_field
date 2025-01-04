@@ -307,12 +307,14 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
   late Country _selectedCountry;
   late List<Country> filteredCountries;
   late String number;
+  late TextEditingController controller;
 
   String? validatorMessage;
 
   @override
   void initState() {
     super.initState();
+    controller = TextEditingController();
     _countryList = widget.countries ?? countries;
     filteredCountries = _countryList;
     number = widget.initialValue ?? '';
@@ -353,6 +355,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         });
       }
     }
+    controller.text = widget.controller?.text ?? number;
   }
 
   Future<void> _changeCountry() async {
@@ -379,11 +382,64 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
     if (mounted) setState(() {});
   }
 
+  /// Handles the paste event for the phone number field.
+  ///
+  /// This method is called when a phone number is pasted into the field.
+  /// It uses the `PhoneNumber.splitPhoneNumber` method to split the pasted phone number
+  /// into the country code and the actual number. If a matching country code is found,
+  /// it updates the selected country and the phone number field accordingly.
+  ///
+  /// - [pastedText]: The pasted phone number.
+  ///
+  /// Returns `true` if the `onChanged` callback was called, otherwise `false`.
+  bool _onPaste(String pastedText) {
+    final result = PhoneNumber.splitPhoneNumber(pastedText, countries);
+    final resultCountryCode = result['countryCode'];
+    final resultNumber = result['number'];
+    if (resultCountryCode == null || resultNumber == null) return false;
+    List<Country> matchedCountries = countries
+        .where(
+          (country) => '+${country.dialCode}' == result['countryCode'],
+        )
+        .toList();
+
+    if (matchedCountries.isNotEmpty) {
+      _selectedCountry = matchedCountries.first;
+      widget.onCountryChanged?.call(_selectedCountry);
+    }
+    // update controller
+    controller.text = resultNumber;
+    // update cursor position
+    controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: controller.text.length),
+    );
+
+    if (widget.controller != null) {
+      widget.controller!.text = resultNumber;
+      // update cursor position
+      widget.controller!.selection = TextSelection.fromPosition(
+        TextPosition(offset: widget.controller!.text.length),
+      );
+    }
+
+    number = resultNumber;
+    final phoneNumber = PhoneNumber(
+      countryISOCode: _selectedCountry.code,
+      countryCode: '+${_selectedCountry.fullCountryCode}',
+      number: resultNumber,
+    );
+    widget.onChanged?.call(phoneNumber);
+
+    if (mounted) {
+      setState(() {});
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       key: widget.formFieldKey,
-      initialValue: (widget.controller == null) ? number : null,
       autofillHints: widget.disableAutoFillHints ? null : [AutofillHints.telephoneNumberNational],
       readOnly: widget.readOnly,
       obscureText: widget.obscureText,
@@ -391,7 +447,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       textAlignVertical: widget.textAlignVertical,
       cursorColor: widget.cursorColor,
       onTap: widget.onTap,
-      controller: widget.controller,
+      controller: controller,
       focusNode: widget.focusNode,
       cursorHeight: widget.cursorHeight,
       cursorRadius: widget.cursorRadius,
@@ -423,8 +479,10 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         if (widget.autovalidateMode != AutovalidateMode.disabled) {
           validatorMessage = await widget.validator?.call(phoneNumber);
         }
-
-        widget.onChanged?.call(phoneNumber);
+        bool onChangedCalled = _onPaste(value);
+        if (!onChangedCalled) {
+          widget.onChanged?.call(phoneNumber);
+        }
       },
       validator: (value) {
         if (value == null || !isNumeric(value)) return validatorMessage;

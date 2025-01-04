@@ -74,6 +74,36 @@ class PhoneNumber {
     return countries.firstWhere((country) => phoneNumber.startsWith(country.dialCode + country.regionCode));
   }
 
+  /// Splits a phone number into country code and the actual number.
+  ///
+  /// This method takes a complete phone number and a list of countries,
+  /// and attempts to split the phone number into its country code and the actual number.
+  /// If the phone number starts with a country code that matches one of the countries in the list,
+  /// it returns a map containing the country code and the actual number.
+  /// If no matching country code is found, it returns an empty country code and the original phone number.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = PhoneNumber.splitPhoneNumber("+12124567890", countries);
+  /// print(result); // { 'countryCode': '+1', 'number': '2124567890' }
+  /// ```
+  ///
+  /// - [phoneNumber]: The complete phone number to be split.
+  /// - [countries]: The list of countries to check against.
+  ///
+  /// Returns a map with 'countryCode' and 'number' keys.
+  static Map<String, String> splitPhoneNumber(String phoneNumber, List<Country> countries) {
+    for (var country in countries) {
+      if (phoneNumber.startsWith('+${country.dialCode}')) {
+        return {
+          'countryCode': '+${country.dialCode}',
+          'number': phoneNumber.substring(country.dialCode.length + 1)
+        };
+      }
+    }
+    return {};
+  }
+
   @override
   String toString() => 'PhoneNumber(countryISOCode: $countryISOCode, countryCode: $countryCode, number: $number)';
 }
