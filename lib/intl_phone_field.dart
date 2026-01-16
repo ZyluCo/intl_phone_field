@@ -456,8 +456,10 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       onFieldSubmitted: widget.onSubmitted,
       magnifierConfiguration: widget.magnifierConfiguration,
       decoration: widget.decoration.copyWith(
-        prefixIcon: _buildFlagsButton(),
+        prefix: _buildFlagsButton(),
         counterText: !widget.enabled ? '' : null,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0)
       ),
       style: widget.style,
       onSaved: (value) {
@@ -555,7 +557,6 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
                   const SizedBox(width: 4),
                   widget.dropdownIcon,
                 ],
-                const SizedBox(width: 8),
               ],
             ),
           ),
