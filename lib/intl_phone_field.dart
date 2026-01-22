@@ -317,7 +317,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
     controller = TextEditingController();
     _countryList = widget.countries ?? countries;
     filteredCountries = _countryList;
-    number = widget.initialValue ?? '';
+    number = widget.initialValue?.replaceAll(' ', '') ?? ''; // remove whitespace from initial value
     if (widget.initialCountryCode == null && number.startsWith('+')) {
       number = number.substring(1);
       // parse initial value
@@ -355,7 +355,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         });
       }
     }
-    controller.text = widget.controller?.text ?? number;
+    controller.text = widget.controller?.text.replaceAll(' ', '') ?? number; // remove whitespace from controller text
   }
 
   Future<void> _changeCountry() async {
@@ -456,8 +456,10 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       onFieldSubmitted: widget.onSubmitted,
       magnifierConfiguration: widget.magnifierConfiguration,
       decoration: widget.decoration.copyWith(
-        prefixIcon: _buildFlagsButton(),
+        prefix: _buildFlagsButton(),
         counterText: !widget.enabled ? '' : null,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0)
       ),
       style: widget.style,
       onSaved: (value) {
@@ -470,6 +472,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         );
       },
       onChanged: (value) async {
+        value = value.replaceAll(' ', ''); // remove whitespace
         final phoneNumber = PhoneNumber(
           countryISOCode: _selectedCountry.code,
           countryCode: '+${_selectedCountry.fullCountryCode}',
@@ -485,6 +488,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
         }
       },
       validator: (value) {
+        value = value?.replaceAll(' ', ''); // remove whitespace
         if (value == null || !isNumeric(value)) return validatorMessage;
         if (!widget.disableLengthCheck) {
           return value.length >= _selectedCountry.minLength && value.length <= _selectedCountry.maxLength
@@ -553,7 +557,6 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
                   const SizedBox(width: 4),
                   widget.dropdownIcon,
                 ],
-                const SizedBox(width: 8),
               ],
             ),
           ),
