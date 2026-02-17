@@ -1,3 +1,7 @@
+## [3.3.1] - Release
+
+- Fix: Automatically remove leading zeros from phone numbers in PhoneNumber object while keeping display unchanged.
+
 ## [3.3.0] - Release
 
 - Add `magnifierConfiguration` to customize the magnifier.

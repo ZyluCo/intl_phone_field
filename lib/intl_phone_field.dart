@@ -339,10 +339,12 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
     }
 
     if (widget.autovalidateMode == AutovalidateMode.always) {
+      // Remove leading zeros for the PhoneNumber object only
+      final sanitizedNumber = number.replaceFirst(RegExp(r'^0+'), '');
       final initialPhoneNumber = PhoneNumber(
         countryISOCode: _selectedCountry.code,
         countryCode: '+${_selectedCountry.dialCode}',
-        number: widget.initialValue ?? '',
+        number: sanitizedNumber,
       );
 
       final value = widget.validator?.call(initialPhoneNumber);
@@ -423,10 +425,12 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
     }
 
     number = resultNumber;
+    // Remove leading zeros for the PhoneNumber object only
+    final sanitizedNumber = resultNumber.replaceFirst(RegExp(r'^0+'), '');
     final phoneNumber = PhoneNumber(
       countryISOCode: _selectedCountry.code,
       countryCode: '+${_selectedCountry.fullCountryCode}',
-      number: resultNumber,
+      number: sanitizedNumber,
     );
     widget.onChanged?.call(phoneNumber);
 
@@ -463,6 +467,9 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       ),
       style: widget.style,
       onSaved: (value) {
+        value = value?.replaceAll(' ', ''); // remove whitespace
+        // Remove leading zeros
+        value = value?.replaceFirst(RegExp(r'^0+'), '');
         widget.onSaved?.call(
           PhoneNumber(
             countryISOCode: _selectedCountry.code,
@@ -473,10 +480,13 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       },
       onChanged: (value) async {
         value = value.replaceAll(' ', ''); // remove whitespace
+        // Remove leading zeros for the PhoneNumber object only
+        final sanitizedValue = value.replaceFirst(RegExp(r'^0+'), '');
+        
         final phoneNumber = PhoneNumber(
           countryISOCode: _selectedCountry.code,
           countryCode: '+${_selectedCountry.fullCountryCode}',
-          number: value,
+          number: sanitizedValue,
         );
 
         if (widget.autovalidateMode != AutovalidateMode.disabled) {
@@ -489,6 +499,8 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       },
       validator: (value) {
         value = value?.replaceAll(' ', ''); // remove whitespace
+        // Remove leading zeros for validation
+        value = value?.replaceFirst(RegExp(r'^0+'), '');
         if (value == null || !isNumeric(value)) return validatorMessage;
         if (!widget.disableLengthCheck) {
           return value.length >= _selectedCountry.minLength && value.length <= _selectedCountry.maxLength
